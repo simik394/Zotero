@@ -1,15 +1,15 @@
 {
 	"translatorID": "c114f9fd-6387-4387-853d-fcfe5ab3ac0a",
+	"translatorType": 4,
 	"label": "Google Presentation",
 	"creator": "Philipp Zumstein",
 	"target": "^https?://docs\\.google\\.com/presentation/d/",
 	"minVersion": "3.0",
-	"maxVersion": "",
+	"maxVersion": null,
 	"priority": 100,
 	"inRepository": true,
-	"translatorType": 4,
 	"browserSupport": "gcsibv",
-	"lastUpdated": "2021-08-02 16:55:40"
+	"lastUpdated": "2024-02-29 20:30:00"
 }
 
 /*
@@ -64,7 +64,7 @@ function doWeb(doc, url) {
 	urlparts.splice(6);
 	var baseUrl = urlparts.join('/');
 	item.url = baseUrl;
-	var pdfUrl = baseUrl + '/export/pdf?id=' + id;
+	var pdfUrl = baseUrl + '/export?format=pdf';
 	//Z.debug(pdfUrl);
 	item.attachments.push({
 		url: pdfUrl,

@@ -1,15 +1,15 @@
 {
 	"translatorID": "dcf75e09-7f8a-4d4d-ad6f-363b46f79b13",
+	"translatorType": 4,
 	"label": "NYPL Research Catalog",
 	"creator": "Abe Jellinek",
 	"target": "^https://www\\.nypl\\.org/research/research-catalog/",
 	"minVersion": "3.0",
-	"maxVersion": "",
+	"maxVersion": null,
 	"priority": 100,
 	"inRepository": true,
-	"translatorType": 4,
 	"browserSupport": "gcsibv",
-	"lastUpdated": "2021-06-22 22:58:06"
+	"lastUpdated": "2024-01-27 09:20:00"
 }
 
 /*
@@ -79,7 +79,7 @@ function scrape(doc, _url) {
 	let bib = JSON.parse(jsonText).bib;
 	
 	// it's easiest we get MARC, but some items don't have it
-	if (bib.annotatedMarc.bib.fields.length) {
+	if (bib.annotatedMarc && bib.annotatedMarc.bib.fields.length) {
 		scrapeMARC(bib.annotatedMarc.bib.fields);
 	}
 	else {

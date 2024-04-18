@@ -9,7 +9,7 @@
 	"priority": 100,
 	"inRepository": true,
 	"browserSupport": "gcsibv",
-	"lastUpdated": "2023-08-24 15:25:00"
+	"lastUpdated": "2024-02-18 04:00:00"
 }
 
 /*
@@ -283,8 +283,8 @@ function scrape(doc, url, type) {
 				creatorType = (enLabel == 'Author') ? 'author' : 'editor';
 				
 				// Use titles of a tags if they exist, since these don't include
-				// affiliations
-				value = ZU.xpathText(rows[i].childNodes[1], "a/@title", null, "; ") || value;
+				// affiliations; don't include links to ORCID profiles
+				value = ZU.xpathText(rows[i].childNodes[1], "a[not(@id='orcidLink')]/@title", null, "; ") || value;
 
 				value = value.replace(/^by\s+/i, '')	// sometimes the authors begin with "By"
 							.split(/\s*;\s*|\s+and\s+/i);

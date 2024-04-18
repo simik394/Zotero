@@ -16,13 +16,13 @@
 	},
 	"configOptions": {
 		"getCollections": true,
-		"hash": "eea7156c7f82b11dbf4adda80a8fbbbd01b838223e5335473b7839145196c669"
+		"hash": "3feb2c199fd6c177faba46dd2d88d1f53ab0ffdef2da01222b825890c5e156af"
 	},
 	"priority": 100,
-	"lastUpdated": "2023-11-21"
+	"lastUpdated": "2024-04-11"
 }
 
-ZOTERO_CONFIG = {"GUID":"zotero@chnm.gmu.edu","ID":"zotero","CLIENT_NAME":"Zotero","DOMAIN_NAME":"zotero.org","PRODUCER":"Digital Scholar","PRODUCER_URL":"https://digitalscholar.org","REPOSITORY_URL":"https://repo.zotero.org/repo/","BASE_URI":"http://zotero.org/","WWW_BASE_URL":"https://www.zotero.org/","PROXY_AUTH_URL":"https://zoteroproxycheck.s3.amazonaws.com/test","API_URL":"https://api.zotero.org/","STREAMING_URL":"wss://stream.zotero.org/","SERVICES_URL":"https://services.zotero.org/","API_VERSION":3,"CONNECTOR_MIN_VERSION":"5.0.39","PREF_BRANCH":"extensions.zotero.","BOOKMARKLET_ORIGIN":"https://www.zotero.org","BOOKMARKLET_URL":"https://www.zotero.org/bookmarklet/","START_URL":"https://www.zotero.org/start","QUICK_START_URL":"https://www.zotero.org/support/quick_start_guide","PDF_TOOLS_URL":"https://www.zotero.org/download/xpdf/","SUPPORT_URL":"https://www.zotero.org/support/","SYNC_INFO_URL":"https://www.zotero.org/support/sync","TROUBLESHOOTING_URL":"https://www.zotero.org/support/getting_help","FEEDBACK_URL":"https://forums.zotero.org/","CONNECTORS_URL":"https://www.zotero.org/download/connectors","CHANGELOG_URL":"https://www.zotero.org/support/changelog","CREDITS_URL":"https://www.zotero.org/support/credits_and_acknowledgments","LICENSING_URL":"https://www.zotero.org/support/licensing","GET_INVOLVED_URL":"https://www.zotero.org/getinvolved","DICTIONARIES_URL":"https://download.zotero.org/dictionaries/"}
+ZOTERO_CONFIG = {"GUID":"zotero@zotero.org","ID":"zotero","CLIENT_NAME":"Zotero","DOMAIN_NAME":"zotero.org","PRODUCER":"Digital Scholar","PRODUCER_URL":"https://digitalscholar.org","REPOSITORY_URL":"https://repo.zotero.org/repo/","BASE_URI":"http://zotero.org/","WWW_BASE_URL":"https://www.zotero.org/","PROXY_AUTH_URL":"https://zoteroproxycheck.s3.amazonaws.com/test","API_URL":"https://api.zotero.org/","STREAMING_URL":"wss://stream.zotero.org/","SERVICES_URL":"https://services.zotero.org/","API_VERSION":3,"CONNECTOR_MIN_VERSION":"5.0.39","PREF_BRANCH":"extensions.zotero.","BOOKMARKLET_ORIGIN":"https://www.zotero.org","BOOKMARKLET_URL":"https://www.zotero.org/bookmarklet/","START_URL":"https://www.zotero.org/start","QUICK_START_URL":"https://www.zotero.org/support/quick_start_guide","PDF_TOOLS_URL":"https://www.zotero.org/download/xpdf/","SUPPORT_URL":"https://www.zotero.org/support/","SYNC_INFO_URL":"https://www.zotero.org/support/sync","TROUBLESHOOTING_URL":"https://www.zotero.org/support/getting_help","FEEDBACK_URL":"https://forums.zotero.org/","CONNECTORS_URL":"https://www.zotero.org/download/connectors","CHANGELOG_URL":"https://www.zotero.org/support/changelog","CREDITS_URL":"https://www.zotero.org/support/credits_and_acknowledgments","LICENSING_URL":"https://www.zotero.org/support/licensing","GET_INVOLVED_URL":"https://www.zotero.org/getinvolved","DICTIONARIES_URL":"https://download.zotero.org/dictionaries/","PLUGINS_URL":"https://www.zotero.org/support/plugins"}
 
         if (typeof ZOTERO_TRANSLATOR_INFO === 'undefined') var ZOTERO_TRANSLATOR_INFO = {}; // declare if not declared
         Object.assign(ZOTERO_TRANSLATOR_INFO, {"translatorID":"19afa3fd-1c7f-4eb8-a37e-8d07768493e8","label":"Citation graph","description":"exports a citation graph in graphml format. Use gephi or yEd to clean up and visualize","creator":"Emiliano heyns","target":"dot","minVersion":"4.0.27","maxVersion":"","translatorType":2,"browserSupport":"gcsv","inRepository":false,"displayOptions":{"Title":false,"Authors":false,"Year":false},"configOptions":{"getCollections":true},"priority":100}); // assign new data
@@ -52,6 +52,363 @@ var { doExport } = (() => {
     doExport: () => doExport
   });
 
+  // content/client.ts
+  var is7 = typeof location !== "undefined" && location.search ? new URLSearchParams(location.search).get("is7") === "true" : Zotero.platformMajorVersion >= 102;
+  function clientname() {
+    var _a;
+    if (typeof location !== "undefined" && location.search)
+      return new URLSearchParams(location.search).get("clientName");
+    if (Zotero.clientName)
+      return Zotero.clientName;
+    if ((_a = Zotero.BetterBibTeX) == null ? void 0 : _a.clientName)
+      return Zotero.BetterBibTeX.clientName;
+    throw new Error("Unable to detect clientName");
+  }
+  var clientName = clientname();
+  var client = clientName.toLowerCase().replace("-", "");
+
+  // gen/osfile.js
+  var OS2 = {
+    Constants: {
+      Path: {
+        get homeDir() {
+          return FileUtils.getDir("Home", []).path;
+        },
+        get libDir() {
+          return FileUtils.getDir("GreBinD", []).path;
+        },
+        get profileDir() {
+          return FileUtils.getDir("ProfD", []).path;
+        },
+        get tmpDir() {
+          return FileUtils.getDir("TmpD", []).path;
+        }
+      }
+    },
+    File: {
+      DirectoryIterator: function(path) {
+        var initialized = false;
+        var paths = [];
+        async function init() {
+          paths.push(...await IOUtils.getChildren(path));
+          initialized = true;
+        }
+        async function getEntry(path2) {
+          var info = await IOUtils.stat(path2);
+          return {
+            name: PathUtils.filename(path2),
+            path: path2,
+            isDir: info.type == "directory"
+          };
+        }
+        this.nextBatch = async function(num) {
+          if (!initialized) {
+            await init();
+          }
+          var entries = [];
+          while (paths.length && num > 0) {
+            entries.push(await getEntry(paths.shift()));
+            num--;
+          }
+          return entries;
+        };
+        this.forEach = async function(func) {
+          if (!initialized) {
+            await init();
+          }
+          var i = 0;
+          while (paths.length) {
+            let entry = await getEntry(paths.shift());
+            await func(entry, i++, this);
+          }
+        };
+        this.close = function() {
+        };
+      },
+      Error: function(msg) {
+        this.message = msg;
+        this.stack = new Error().stack;
+      },
+      copy: wrapWrite(async function(src, dest) {
+        return IOUtils.copy(src, dest);
+      }),
+      exists: async function(path) {
+        try {
+          return await IOUtils.exists(path);
+        } catch (e) {
+          if (e.message.includes("NS_ERROR_FILE_UNRECOGNIZED_PATH")) {
+            dump(e.message + "\n\n" + e.stack + "\n\n");
+            Components.utils.reportError(e);
+            return false;
+          }
+        }
+      },
+      makeDir: wrapWrite(async function(path, options2 = {}) {
+        try {
+          return await IOUtils.makeDirectory(
+            path,
+            {
+              ignoreExisting: options2.ignoreExisting !== false,
+              createAncestors: !!options2.from,
+              permissions: options2.unixMode
+            }
+          );
+        } catch (e) {
+          if (e.name == "InvalidAccessError") {
+            if (/Could not create directory because the target file(.+) exists and is not a directory/.test(e.message)) {
+              let osFileError = new OS2.File.Error(e.message);
+              osFileError.becauseExists = true;
+              throw osFileError;
+            }
+          }
+        }
+      }),
+      move: wrapWrite(async function(src, dest, options2 = {}) {
+        if (options2.noCopy) {
+          throw new Error("noCopy is no longer supported");
+        }
+        var destFileInfo = null;
+        try {
+          destFileInfo = await IOUtils.stat(dest);
+        } catch (e) {
+          if (e.name != "NotFoundError") {
+            throw e;
+          }
+        }
+        if (destFileInfo) {
+          if (destFileInfo.type == "directory") {
+            throw new Error("OS.File.move() destination cannot be a directory -- use IOUtils.move()");
+          }
+          if (options2.noOverwrite) {
+            let e = new OS2.File.Error();
+            e.becauseExists = true;
+            throw e;
+          }
+        }
+        return IOUtils.move(src, dest, options2);
+      }),
+      read: async function(path, options2 = {}) {
+        if (options2.encoding) {
+          if (!/^utf\-?8$/i.test(options2.encoding)) {
+            throw new Error("Can only read UTF-8");
+          }
+          return IOUtils.readUTF8(path);
+        }
+        return IOUtils.read(
+          path,
+          {
+            maxBytes: options2.bytes
+          }
+        );
+      },
+      remove: async function(path, options2 = {}) {
+        return IOUtils.remove(path, options2);
+      },
+      removeDir: async function(path, options2 = {}) {
+        return IOUtils.remove(
+          path,
+          {
+            recursive: true,
+            // OS.File.removeDir defaulted to ignoreAbsent: true
+            ignoreAbsent: options2.ignoreAbsent !== false
+          }
+        );
+      },
+      removeEmptyDir: async function(path) {
+        return IOUtils.remove(path);
+      },
+      setDates: async function(path, atime, mtime) {
+        if (atime) {
+          await IOUtils.setAccessTime(path, atime.valueOf());
+        }
+        return await IOUtils.setModificationTime(path, mtime ? mtime.valueOf() : void 0);
+      },
+      setPermissions: async function(path, { unixMode, winAttributes } = {}) {
+        await IOUtils.setPermissions(path, unixMode);
+        if (winAttributes && Zotero.isWin) {
+          let { readOnly, hidden, system } = winAttributes;
+          await IOUtils.setWindowsAttributes(path, { readOnly, hidden, system });
+        }
+      },
+      stat: async function stat(path) {
+        var info;
+        try {
+          info = await IOUtils.stat(path);
+        } catch (e) {
+          if (e.name == "NotFoundError") {
+            let osFileError = new this.Error("File not found");
+            osFileError.becauseNoSuchFile = true;
+            throw osFileError;
+          }
+          throw e;
+        }
+        return {
+          isDir: info.type == "directory",
+          isSymLink: true,
+          // Supposedly was broken in Firefox
+          size: info.size,
+          lastAccessDate: new Date(info.lastAccessed),
+          lastModificationDate: new Date(info.lastModified)
+        };
+      },
+      unixSymLink: async function(pathTarget, pathCreate) {
+        if (await IOUtils.exists(pathCreate)) {
+          let osFileError = new this.Error(pathCreate + " already exists");
+          osFileError.becauseExists = true;
+          throw osFileError;
+        }
+        const { ctypes } = ChromeUtils.importESModule(
+          "resource://gre/modules/ctypes.sys.mjs"
+        );
+        try {
+          if (Services.appinfo.OS === "Darwin") {
+            const libc = ctypes.open(
+              Services.appinfo.OS === "Darwin" ? "libSystem.B.dylib" : "libc.so"
+            );
+            const symlink = libc.declare(
+              "symlink",
+              ctypes.default_abi,
+              ctypes.int,
+              // return value
+              ctypes.char.ptr,
+              // target
+              ctypes.char.ptr
+              //linkpath
+            );
+            if (symlink(pathTarget, pathCreate)) {
+              throw new Error("Failed to create symlink at " + pathCreate);
+            }
+          } else {
+            let ln = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsIFile);
+            ln.initWithPath("/bin/ln");
+            let process = Cc["@mozilla.org/process/util;1"].createInstance(Ci.nsIProcess);
+            process.init(ln);
+            let args = ["-s", pathTarget, pathCreate];
+            process.run(true, args, args.length);
+          }
+        } catch (e) {
+          dump(e.message + "\n\n");
+          throw new Error("Failed to create symlink at " + pathCreate);
+        }
+      },
+      writeAtomic: async function(path, bytes, options2 = {}) {
+        if (options2.backupTo) {
+          options2.backupFile = options2.backupTo;
+        }
+        if (options2.noOverwrite) {
+          options2.mode = "create";
+        }
+        if (options2.encoding == "utf-8") {
+          return IOUtils.writeUTF8(path, bytes, options2);
+        }
+        return IOUtils.write(path, bytes, options2);
+      }
+    },
+    Path: {
+      basename: function(path) {
+        return PathUtils.filename(path);
+      },
+      dirname: function(path) {
+        return PathUtils.parent(path);
+      },
+      fromFileURI: function(uri) {
+        let url = new URL(uri);
+        if (url.protocol != "file:") {
+          throw new Error("fromFileURI expects a file URI");
+        }
+        let path = this.normalize(decodeURIComponent(url.pathname));
+        return path;
+      },
+      join: function(path, ...args) {
+        var platformSlash = Services.appinfo.OS == "WINNT" ? "\\" : "/";
+        try {
+          if (args.length == 0) {
+            return path;
+          }
+          if (args.length == 1 && args[0].includes(platformSlash)) {
+            return PathUtils.joinRelative(path, ...args);
+          }
+          return PathUtils.join(path, ...args);
+        } catch (e) {
+          if (e.message.includes("NS_ERROR_FILE_UNRECOGNIZED_PATH")) {
+            Cu.reportError("WARNING: " + e.message + " -- update for IOUtils");
+            return [path, ...args].join(platformSlash);
+          }
+          throw e;
+        }
+      },
+      // From Firefox 102
+      normalize: function(path) {
+        let stack = [];
+        let absolute;
+        if (path.length >= 0 && path[0] == "/") {
+          absolute = true;
+        } else {
+          absolute = false;
+        }
+        path.split("/").forEach(function(v) {
+          switch (v) {
+            case "":
+            case ".":
+              break;
+            case "..":
+              if (!stack.length) {
+                if (absolute) {
+                  throw new Error("Path is ill-formed: attempting to go past root");
+                } else {
+                  stack.push("..");
+                }
+              } else if (stack[stack.length - 1] == "..") {
+                stack.push("..");
+              } else {
+                stack.pop();
+              }
+              break;
+            default:
+              stack.push(v);
+          }
+        });
+        let string = stack.join("/");
+        return absolute ? "/" + string : string;
+      },
+      toFileURI: function(path) {
+        return PathUtils.toFileURI(path);
+      }
+    }
+  };
+  function wrapWrite(func) {
+    return async function() {
+      try {
+        return await func(...arguments);
+      } catch (e) {
+        if (DOMException.isInstance(e)) {
+          if (e.name == "NoModificationAllowedError") {
+            e.becauseExists = true;
+          }
+        }
+        throw e;
+      }
+    };
+  }
+
+  // content/os.ts
+  var Shim = is7 ? OS2 : void 0;
+  if (is7 && !Shim.Path.split) {
+    Shim.Path.split = (path) => {
+      path = Shim.Path.normalize(path);
+      if (Services.appinfo.OS === "WINNT") {
+        const absolute = !!path.match(/^[A-Z]:\\/i);
+        const components = path.replace(/^[A-Z]:\\/i, "").replace(/\\$/, "").split("\\");
+        const winDrive = absolute ? path[0] : void 0;
+        return { absolute, components, winDrive };
+      } else {
+        const absolute = path[0] === "/";
+        const components = path.replace(/^\//, "").replace(/\/$/, "").split("/");
+        return { absolute, components };
+      }
+    };
+  }
+
   // gen/preferences/meta.ts
   var defaults = {
     ascii: "",
@@ -79,6 +436,7 @@ var { doExport } = (() => {
     cacheFlushInterval: 5,
     charmap: "",
     citeCommand: "cite",
+    citekeyCaseInsensitive: true,
     citekeyFold: true,
     citekeyFormat: "auth.lower + shorttitle(3,3) + year",
     citekeyFormatEditing: "",
@@ -115,6 +473,7 @@ var { doExport } = (() => {
     logEvents: true,
     mapMath: "",
     mapText: "",
+    packages: "",
     parseParticles: true,
     patchDates: "dateadded=dateAdded, date-added=dateAdded, datemodified=dateModified, date-modified=dateModified",
     platform: "",
@@ -140,7 +499,7 @@ var { doExport } = (() => {
     strings: "",
     stringsOverride: "",
     testing: false,
-    verbatimFields: "url,doi,file,pdf,ids,eprint,/^verb[a-z]$/,groups,/^citeulike-linkout-[0-9]+$/, /^bdsk-url-[0-9]+$/",
+    verbatimFields: "url,doi,file,pdf,ids,eprint,/^verb[a-z]$/,groups,/^citeulike-linkout-[0-9]+$/, /^bdsk-url-[0-9]+$/, keywords",
     warnBulkModify: 10,
     warnTitleCased: false
   };
@@ -167,6 +526,7 @@ var { doExport } = (() => {
       "language",
       "mapMath",
       "mapText",
+      "packages",
       "parseParticles",
       "postscript",
       "qualityReport",
@@ -201,6 +561,7 @@ var { doExport } = (() => {
       "language",
       "mapMath",
       "mapText",
+      "packages",
       "parseParticles",
       "postscript",
       "qualityReport",
@@ -312,22 +673,8 @@ var { doExport } = (() => {
     }
   };
 
-  // content/client.ts
-  var is7 = typeof location !== "undefined" && location.search ? new URLSearchParams(location.search).get("is7") === "true" : Zotero.platformMajorVersion >= 102;
-  function clientname() {
-    var _a;
-    if (typeof location !== "undefined" && location.search)
-      return new URLSearchParams(location.search).get("clientName");
-    if (Zotero.clientName)
-      return Zotero.clientName;
-    if ((_a = Zotero.BetterBibTeX) == null ? void 0 : _a.clientName)
-      return Zotero.BetterBibTeX.clientName;
-    throw new Error("Unable to detect clientName");
-  }
-  var clientName = clientname();
-  var client = clientName.toLowerCase().replace("-", "");
-
   // translators/lib/translator.ts
+  var $OS = is7 ? Shim : OS;
   var PrefNames = new Set(Object.keys(defaults));
   var cacheDisabler = new class {
     get(target, property) {
@@ -469,9 +816,9 @@ var { doExport } = (() => {
         return false;
       }
       const candidates = [
-        OS.Path.basename(this.exportPath).replace(/\.[^.]+$/, "") + extension,
+        $OS.Path.basename(this.exportPath).replace(/\.[^.]+$/, "") + extension,
         override
-      ].map((filename) => OS.Path.join(this.exportDir, filename));
+      ].map((filename) => $OS.Path.join(this.exportDir, filename));
       for (const candidate of candidates) {
         Zotero.debug(`better-bibtex: looking for override ${preference} in ${candidate}`);
         try {
@@ -546,6 +893,7 @@ var { doExport } = (() => {
           this.options[key] = !!Zotero.getOption(key);
         }
       }
+      this.options.custom = Zotero.getOption("custom");
       this.preferences = Object.entries(defaults).reduce((acc, [pref, dflt]) => {
         var _a;
         acc[pref] = (_a = Zotero.getHiddenPref(`better-bibtex.${pref}`)) != null ? _a : dflt;
@@ -559,9 +907,9 @@ var { doExport } = (() => {
       if (override.override("strings", ".bib"))
         this.cacheable = false;
       try {
-        this.texmap = JSON.parse(this.preferences.charmap);
+        this.charmap = JSON.parse(this.preferences.charmap);
       } catch (err) {
-        this.texmap = {};
+        this.charmap = {};
       }
       this.importToExtra = {};
       this.preferences.importNoteToExtra.toLowerCase().split(/\s*,\s*/).filter((field) => field).forEach((field) => {
@@ -643,7 +991,7 @@ var { doExport } = (() => {
         translation.preferences.separatorNames = ` ${translation.preferences.separatorNames} `;
       }
       if (translation.preferences.testing && typeof __estrace === "undefined" && ((_d = translator.configOptions) == null ? void 0 : _d.cached)) {
-        const allowedPreferences = affectedBy[translator.label].concat(["testing"]).reduce((acc, pref) => {
+        const allowedPreferences = (translator.label === "BetterBibTeX JSON" ? Object.keys(defaults) : affectedBy[translator.label]).concat(["testing"]).reduce((acc, pref) => {
           acc[pref] = translation.preferences[pref];
           return acc;
         }, {});

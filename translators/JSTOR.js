@@ -1,15 +1,15 @@
 {
 	"translatorID": "d921155f-0186-1684-615c-ca57682ced9b",
+	"translatorType": 4,
 	"label": "JSTOR",
 	"creator": "Simon Kornblith, Sean Takats, Michael Berkowitz, Eli Osherovich, czar",
 	"target": "^https?://([^/]+\\.)?jstor\\.org/(discover/|action/(showArticle|doBasicSearch|doAdvancedSearch|doLocatorSearch|doAdvancedResults|doBasicResults)|stable/|pss/|openurl\\?|sici\\?)",
 	"minVersion": "3.0.12",
-	"maxVersion": "",
+	"maxVersion": null,
 	"priority": 100,
 	"inRepository": true,
-	"translatorType": 4,
 	"browserSupport": "gcsibv",
-	"lastUpdated": "2022-09-22 15:58:08"
+	"lastUpdated": "2024-04-01 19:00:00"
 }
 
 /*
@@ -39,7 +39,7 @@
 
 function detectWeb(doc, url) {
 	// See if this is a search results page or Issue content
-	if (doc.title == "JSTOR: Search Results") {
+	if (doc.title == "Search results | JSTOR") {
 		return "multiple";
 	}
 	// Issues with DOIs can't be identified by URL

@@ -3,13 +3,13 @@
 	"translatorType": 4,
 	"label": "Twitter",
 	"creator": "Bo An, Dan Stillman",
-	"target": "^https?://([^/]+\\.)?twitter\\.com/",
+	"target": "^https?://([^/]+\\.)?(twitter|x)\\.com/",
 	"minVersion": "4.0",
 	"maxVersion": null,
 	"priority": 100,
 	"inRepository": true,
 	"browserSupport": "gcsibv",
-	"lastUpdated": "2023-08-17 18:40:00"
+	"lastUpdated": "2024-04-05 08:25:00"
 }
 
 /*
