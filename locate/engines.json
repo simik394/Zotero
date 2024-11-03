@@ -1,20 +1,6 @@
 [
 	{
-		"_name": "CrossRef Lookup",
-		"_alias": "CrossRef",
-		"_description": "CrossRef Search Engine",
-		"_icon": "file:///C:/Users/simon/Zotero/locate/CrossRef%20Lookup.ico",
-		"_hidden": false,
-		"_urlTemplate": "https://crossref.org/openurl?{z:openURL}&pid=zter:zter321",
-		"_urlParams": [],
-		"_urlNamespaces": {
-			"z": "http://www.zotero.org/namespaces/openSearch#",
-			"": "http://a9.com/-/spec/opensearch/1.1/"
-		},
-		"_iconSourceURI": "https://crossref.org/favicon.ico"
-	},
-	{
-		"_name": "Google Scholar Search",
+		"_name": "Google Scholar",
 		"_alias": "Google Scholar",
 		"_description": "Google Scholar Search",
 		"_icon": "file:///C:/Users/simon/Zotero/locate/Google%20Scholar%20Search.ico",

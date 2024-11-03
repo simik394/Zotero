@@ -1,15 +1,15 @@
 {
 	"translatorID": "f3f092bf-ae09-4be6-8855-a22ddd817925",
+	"translatorType": 4,
 	"label": "ACM Digital Library",
 	"creator": "Guy Aglionby",
 	"target": "^https://dl\\.acm\\.org/(doi|do|profile|toc|topic|keyword|action/doSearch|acmbooks|browse)",
 	"minVersion": "3.0",
-	"maxVersion": "",
+	"maxVersion": null,
 	"priority": 100,
 	"inRepository": true,
-	"translatorType": 4,
 	"browserSupport": "gcsibv",
-	"lastUpdated": "2023-03-16 04:39:27"
+	"lastUpdated": "2024-07-30 05:25:00"
 }
 
 /*
@@ -167,7 +167,7 @@ function scrape(doc) {
 			item.abstractNote = ZU.trimInternal(abstract);
 		}
 		
-		let pdfElement = doc.querySelector('a[title=PDF]');
+		let pdfElement = doc.querySelector('a[title="View PDF"]');
 		if (pdfElement) {
 			item.attachments.push({
 				url: pdfElement.href,
